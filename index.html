@@ -1,0 +1,122 @@
+<html><body style="font-family:Calibri;font-size:18px;margin-top:150px">
+
+<div style="width:100%;text-align:center;margin-left:auto;margin-right:auto">
+<div style="-webkit-user-select:none;font-size:48px;color:#08F">
+<span onclick="c.innerHTML++;chem()">C</span><sub onclick="this.innerHTML--;chem()" id="c">2</sub>
+<span onclick="h.innerHTML++;chem()">H</span><sub onclick="this.innerHTML--;chem()" id="h">2</sub>
+<span onclick="o.innerHTML++;chem()">O</span><sub onclick="this.innerHTML--;chem()" id="o">2</sub>
+<span onclick="n.innerHTML++;chem()">N</span><sub onclick="this.innerHTML--;chem()" id="n">2</sub>
+</div>
+
+<div id="ifapplies" style="display:block">
+C: <span id="ccomp"></span>% (w/w)
+<br>H: <span id="hcomp"></span>% (w/w)
+<br>O: <span id="ocomp"></span>% (w/w)
+<br>N: <span id="ncomp"></span>% (w/w)
+<br>Molar Mass: <span id="mm"></span> <sup>g</sup>/<sub>mol</sub>
+<br>O<sub>2</sub> coefficient: <span id="coeff"></span>
+<br>Bonds: <span id="bonddisp"></span>
+</div>
+
+<span id="check" style="color:green"></span>
+<br><span style="background-color:#CCC;padding:10px;display:inline-block">
+    You can change an element's subscript by typing its symbol followed by the desired integer,
+    <br>or clicking its symbol to increment the subscript and clicking its subscript to decrement it.
+</span>  
+  
+</div>
+
+
+
+</body>
+<script>
+//1:distinguish between bonds and rings
+//2:not enough atoms to form rings
+//3:special-case not enough atoms:O,CHO,C,C2
+//4:hide bad data
+//5:add N
+//solution to 3:(c+h+o)! must be >= while num of atoms <4
+
+//SHORTS
+var d=document;
+var c=d.getElementById("c");
+var h=d.getElementById("h");
+var o=d.getElementById("o");
+var n=d.getElementById("n");
+var check=d.getElementById("check");
+var ifapplies=d.getElementById("ifapplies");
+
+
+function chem() { 
+    var cobt=parseInt(c.innerHTML,10);
+    var hobt=parseInt(h.innerHTML,10);
+    var oobt=parseInt(o.innerHTML,10);
+    var nobt=parseInt(n.innerHTML,10);
+
+    this.bonds=(4*cobt+3*nobt+2*oobt+hobt)/2;
+    d.getElementById("bonddisp").innerHTML=this.bonds;
+    this.unsat=this.bonds-(hobt+cobt+oobt+nobt)+1;
+    
+    if((this.coeff<=0)||(nobt>0)){d.getElementById("coeff").innerHTML="not combustible"}
+    else{
+        this.coeff=cobt+hobt/4-oobt/2;
+        if(this.coeff%1!==0){this.coeff*=2}if(this.coeff%1!==0){this.coeff*=2}
+        d.getElementById("coeff").innerHTML=this.coeff
+    }
+
+    if(verify()){check.innerHTML=this.unsat+"&#176; of unsaturation";check.style.color="green";ifapplies.style.display="block"}
+    else{check.innerHTML="This compound cannot exist.";check.style.color="red";ifapplies.style.display="none"}
+    
+    cobt*=12.011;
+    hobt*=1.0079;
+    oobt*=16;
+    nobt*=14.007;
+    this.total=cobt+hobt+oobt+nobt;
+    d.getElementById("mm").innerHTML=this.total.toFixed(1);
+    d.getElementById("ccomp").innerHTML=(100*cobt/this.total).toFixed(1);
+    d.getElementById("hcomp").innerHTML=(100*hobt/this.total).toFixed(1);
+    d.getElementById("ocomp").innerHTML=(100*oobt/this.total).toFixed(1);
+    d.getElementById("ncomp").innerHTML=(100*nobt/this.total).toFixed(1);
+}chem();
+
+function verify() {
+var exist=true;
+if(this.unsat<0){exist=false}
+else if(this.unsat%1!==0){exist=false}
+else if(c.innerHTML<0){exist=false}
+else if(h.innerHTML<0){exist=false}
+else if(o.innerHTML<0){exist=false}
+return exist;
+}
+
+var keys=[];
+var delay;
+document.addEventListener("keydown",function(event) {
+    switch(event.keyCode){
+        case 67:analyze();punch("c");break;
+        case 72:analyze();punch("h");break;
+        case 79:analyze();punch("o");break;
+        case 78:analyze();punch("n");break;
+        default:if((event.keyCode>=48)&&(event.keyCode<=57)){punch(event.keyCode-48)}//the digits
+    }//close switch
+    
+});//close eventlistener
+
+function punch(newkey){
+    clearTimeout(delay);
+    keys.push(newkey);
+    delay=setTimeout(analyze,1000);
+}
+
+function analyze(){//turn keys into string
+    this.quickstr="";
+    for(var loop1=1;loop1<keys.length;loop1++){this.quickstr+=keys[loop1]}
+    if(parseInt(this.quickstr,10)%1!==0){keys=[]}//if NaN
+    if(keys.length>1){document.getElementById(keys[0]).innerHTML=this.quickstr}
+    keys=[];
+    chem();
+}
+
+</script>    
+</html>
+<!--this.total of non-spawn same as global total?-->
